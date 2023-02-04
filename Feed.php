@@ -170,7 +170,10 @@ class Feed
 	 */
 	private static function httpRequest($url, $user, $pass)
 	{
-		if (extension_loaded('curl')) {
+    if ($user === null && $pass === null) {
+    return file_get_contents($url);
+		
+		} elseif (extension_loaded('curl')) {
 			$curl = curl_init();
 			curl_setopt($curl, CURLOPT_URL, $url);
 			if ($user !== null || $pass !== null) {
@@ -187,8 +190,6 @@ class Feed
 			return curl_errno($curl) === 0 && curl_getinfo($curl, CURLINFO_HTTP_CODE) === 200
 				? $result
 				: false;
-		} elseif ($user === null && $pass === null) {
-			return file_get_contents($url);
 		} else {
 			throw new FeedException('PHP extension CURL is not loaded.');
 		}
