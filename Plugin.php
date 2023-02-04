@@ -40,11 +40,18 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
      */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
+        $rssHub = new Typecho_Widget_Helper_Form_Element_Text(
+            'rssHub',
+            NULL,
+            "https://rsshub.app",
+            _t('rssHub链接(默认为主站链接,请不要输入最后的/)')
+        );
+        $form->addInput($rssHub);
 
         $uid = new Typecho_Widget_Helper_Form_Element_Text(
             'uid',
             NULL,
-            345852729,
+            1585955812,
             _t('用户id')
         );
         $form->addInput($uid);
@@ -54,8 +61,8 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
             NULL,
             24,
             _t(
-                '缓存时间',
-                _t('单位为小时（建议大于12小时，以减轻服务器负担。如果设置过低可能无效，因为 api 服务器本身也带有缓存。')
+                '缓存时间(单位为小时)',
+                _t('（建议大于12小时，以减轻服务器负担。如果设置过低可能无效，因为 api 服务器本身也带有缓存。')
             )
         );
         $form->addInput($expireTime);
@@ -95,6 +102,12 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
             1   =>  _t('是')
         ), 0, _t('显示转发内容'));
         $form->addInput($share->addRule('enum', _t('请选择一种'), array(0, 1)));
+
+        $disableEmbed = new Typecho_Widget_Helper_Form_Element_Radio('disableEmbed', array(
+          0   =>  _t('否'),
+          1   =>  _t('是')
+      ), 0, _t('显示视频(iframe，建议不开启)'));
+      $form->addInput($disableEmbed->addRule('enum', _t('请选择一种'), array(0, 1)));
     }
 
     /**
@@ -109,17 +122,23 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
 
     public static function renderDynamics()
     {
+        $rssHub = Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->rssHub;
         $uid = Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->uid;
         if (!is_numeric($uid)) echo "错误：uid 必须是数字";
         $expireTime = Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->expireTime;
         $count = intval(Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->count);
         $share = intval(Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->share);
+        $disableEmbed = intval(Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->disableEmbed);
         $ignore = Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->ignore;
         $select = Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->select;
 
 
-
-        $url = "https://rsshub.app/bilibili/user/dynamic/" . $uid;
+        if(!$disableEmbed){
+          $url = $rssHub . "/bilibili/user/dynamic/" . $uid;
+        }else{
+          $url = $rssHub . "/bilibili/user/dynamic/" . $uid ."/disableEmbed";
+        }
+        
         $spaceUrl = "https://space.bilibili.com/" . $uid;
         Feed::$cacheDir = __DIR__ . '/tmp';
         Feed::$cacheExpire = $expireTime . ' hours';
@@ -168,7 +187,7 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
                         echo '<a style="font-size: .9em; color: #5DADE2;" href="' . $item->link . '">@' . htmlspecialchars($author) . '</a>&nbsp;';
                         ?>
                         <span style="color: #aaa; font-size: .6em;"><time class="lately-a" datetime="<?php echo date("Y-m-d H:i:s", intval($item->timestamp)); ?>" itemprop="datePublished">
-                                <?php echo date("Y-m-d H:i:s", $item->timestamp); ?></time></span>
+                                <?php echo date("Y-m-d H:i:s", (int)$item->timestamp); ?></time></span>
                     </span>
                     <?php
                     echo '<p style="padding-top: 10px;color: rgba(0, 0, 0, .6);font-size: 14px;">' . $content . '</p>';
