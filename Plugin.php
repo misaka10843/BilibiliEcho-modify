@@ -133,7 +133,7 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
         $select = Typecho_Widget::widget('Widget_Options')->plugin('BilibiliEcho')->select;
 
 
-        if(!$disableEmbed){
+        if($disableEmbed){
           $url = $rssHub . "/bilibili/user/dynamic/" . $uid;
         }else{
           $url = $rssHub . "/bilibili/user/dynamic/" . $uid ."/disableEmbed";
@@ -153,9 +153,9 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
         $counter = 0;
         ?>
     <div class="widget">
-        <div class="heading-title">
-            Dynamics
-        </div>
+        <h3 class="widget-title">
+        <i class="fa-brands fa-bilibili" style="color:#00A0D8;"></i> 观星动态
+        </h3>
         <ul class="list--withIcon">
 
             <?php foreach ($rss->item as $item) :
@@ -197,7 +197,8 @@ class BilibiliEcho_Plugin implements Typecho_Plugin_Interface
                 <?php
                 $counter++;
             endforeach; ?>
-
+          <center><a href="<?php echo $spaceUrl ?>">查看更多动态</a></center>
+          <br>
         </ul>
     </div>
 <?php
